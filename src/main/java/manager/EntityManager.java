@@ -6,7 +6,9 @@ import caster.StringCaster;
 import utils.SQLUtils;
 
 import javax.sql.DataSource;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.stream.Stream;
@@ -93,7 +95,8 @@ public class EntityManager {
 
             statement.setObject(1, idValue);
             resultSet = statement.executeQuery();
-            result = resultType.newInstance();
+            Constructor<T> constructor = resultType.getConstructor();
+            result = constructor.newInstance();
 
             if (resultSet.next()) {
                 for (Field field : resultType.getDeclaredFields()) {
@@ -104,7 +107,7 @@ public class EntityManager {
                 result = null;
             }
             return result;
-        } catch (SQLException | NoSuchFieldException | IllegalAccessException | InstantiationException e) {
+        } catch (SQLException | NoSuchFieldException | IllegalAccessException | InstantiationException | InvocationTargetException | NoSuchMethodException e) {
             throw new IllegalStateException(e);
         } finally {
             if (resultSet != null) {
